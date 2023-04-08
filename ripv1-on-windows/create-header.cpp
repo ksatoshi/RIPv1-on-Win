@@ -1,4 +1,7 @@
-unsigned* reset_header(unsigned*, int);
+#include<stdlib.h>
+#include<stdio.h>
+
+void reset_header(unsigned*, int);
 
 //RIP用のヘッダーを生成し配列として返す関数
 /*
@@ -10,9 +13,9 @@ unsigned* reset_header(unsigned*, int);
 *+----------------------------------------------------+
 *                                                     63
 */
-unsigned* generate_rip_header(unsigned *header,int header_length,int command, int version, int afi) {
+void generate_rip_header(unsigned *header,int header_length,int command, int version, int afi) {
 	//ヘッダーを0でリセット
-	header = reset_header(header, header_length);
+	reset_header(header, header_length);
 
 	//header_length==2の場合のみRIPヘッダーを作成して返す
 	if (header_length == 2) {
@@ -30,8 +33,6 @@ unsigned* generate_rip_header(unsigned *header,int header_length,int command, in
 		*header = head1;
 		*(header + 1) = head2;
 	}
-
-	return header;
 }
 
 //RIP用のIPAddressを含むヘッダーを生成
@@ -47,23 +48,36 @@ unsigned* generate_rip_header(unsigned *header,int header_length,int command, in
 |metric(32bit)                                       |
 +----------------------------------------------------+
 */
-unsigned* generate_rip_header_ip(unsigned* header, int header_length, unsigned __int32 ip_addr, unsigned __int32 metric) {
+void generate_rip_header_ip(unsigned* header, int header_length, unsigned __int32 ip_addr, unsigned __int32 metric) {
 	//ヘッダーをリセット
-	header = reset_header(header, header_length);
+	 reset_header(header, header_length);
 
 	//header_length==4の場合のみIPヘッダーを作成
 	if (header_length == 4) {
 		*header = ip_addr;
 		*(header + 3) = metric;
 	}
+}
 
-	return header;
+//ヘッダーを結合する関数
+void cupling_header(unsigned* header_a, int header_a_length, unsigned* header_b, int header_b_length, unsigned *out) {
+	reset_header(out, header_a_length + header_b_length);
+
+	for (int i = 0; i < header_a_length;i++) {
+		*(out + i) = *(header_a + i);
+		printf("add index %d:%#08x\n", i, *(out + i));
+	}
+
+	for (int i = 0; i < header_b_length; i++) {
+		*(out + i+header_a_length) = *(header_b + i);
+		printf("add index %d:%#08x\n", i+header_a_length, *(out + i));
+	}
+
 }
 
 //ヘッダーを0にリセットする関数
-unsigned* reset_header(unsigned* header, int length) {
+void reset_header(unsigned* header, int length) {
 	for (int i = 0; i < length; i++) {
 		*(header + i) = 0x00000000;
 	}
-	return header;
 }
